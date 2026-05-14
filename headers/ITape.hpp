@@ -3,11 +3,9 @@
 #include <string>
 
 class IType {
-
-    private:
-
-    public:
-        std::optional<int32_t> read();
-        std::optional<int32_t> write(int32_t value);
-
+    public:      
+        virtual std::optional<int32_t> read() = 0;
+        virtual bool write(int32_t value) = 0;
+        virtual bool rewind() = 0;
+        virtual bool move(bool direction) = 0;
 };

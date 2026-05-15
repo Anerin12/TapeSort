@@ -1,4 +1,5 @@
-#include "./ITape.hpp"
+#include "ITape.hpp"
+#include "Config.hpp"
 #include <fstream>
 #include <thread>
 #include <chrono>
@@ -14,7 +15,7 @@ class Tape : IType {
         int move_delay;
 
     public:
-        Tape(std::string file_name);
+        Tape(std::string file_name, Config conf);
 
         std::optional<int32_t> read() override;
         bool write(int32_t value) override;

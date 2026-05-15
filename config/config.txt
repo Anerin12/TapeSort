@@ -1,0 +1,4 @@
+rw_delay=0
+rewind_delay=0
+move_delay=0
+ram_size=1500

@@ -1,20 +1,28 @@
-#include "./headers/Tape.hpp"
+#include "Tape.hpp"
 
-Tape::Tape(std::string file_name) : data(file_name, std::ios::in | std::ios::out | std::ios::binary)
+const int ENTRY_SIZE = 12;
+
+Tape::Tape(std::string file_name, Config conf) : rw_delay(conf.rw_delay),
+                                                rewind_delay(conf.rewind_delay),
+                                                move_delay(conf.move_delay) 
 {
-
-    // Получение задержек из файла
-    std::fstream config("../config/config.txt");
-
-    this->rw_delay = 0;
-    this->rewind_delay = 0;
-    this->move_delay = 0;
-
     // Открываем поток ввода (ленту)
-    if (!this->data.is_open()){
-        perror("Failed open file");
+    this->data.open(file_name, std::ios::in | std::ios::out);
+
+    if (!this->data.is_open())
+    {
+        this->data.clear();
+        this->data.open(file_name, std::ios::in | std::ios::out | std::ios::trunc);
+    }
+
+    if (!this->data.is_open())
+    {
+        perror(("Failed open file: " + file_name).c_str());
         exit(1);
     }
+
+    // Отключю буферизация потоков для минимизации потребления RAM и более точной эмуляции последовательного доступа ленты
+    this->data.rdbuf()->pubsetbuf(nullptr, 0);
 
     this->current_position = 0;
 }
@@ -26,13 +34,13 @@ Tape::~Tape(){
 std::optional<int32_t> Tape::read(){
 
     int32_t buffer = 0;
-    std::streampos bytePosition = static_cast<std::streamoff>(this->current_position) * sizeof(int32_t);
+    std::streampos bytePosition = static_cast<std::streamoff>(this->current_position) * ENTRY_SIZE;
 
     this->data.seekg(bytePosition);
 
-    if (this->data.read(reinterpret_cast<char *>(&buffer), sizeof(int32_t))) {
+    if (this->data >> buffer)
+    {
         std::this_thread::sleep_for(std::chrono::milliseconds(rw_delay));
-
         return buffer;
     }
 
@@ -40,11 +48,13 @@ std::optional<int32_t> Tape::read(){
 }
 
 bool Tape::write(int32_t value) {
-    std::streampos bytePosition = static_cast<std::streamoff>(this->current_position) * sizeof(int32_t);
+    std::streampos bytePosition = static_cast<std::streamoff>(this->current_position) * ENTRY_SIZE;
     this->data.seekp(bytePosition);
-    if (this->data.write(reinterpret_cast<char *>(&value), sizeof(int32_t))) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(rw_delay));
 
+    if (this->data << std::setw(ENTRY_SIZE - 1) << std::setfill(' ') << value << " ")
+    {
+        this->data.flush();
+        std::this_thread::sleep_for(std::chrono::milliseconds(rw_delay));
         return true;
     }
 

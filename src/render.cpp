@@ -1,4 +1,4 @@
-#include "../headers/render.hpp"
+#include "render.hpp"
 
 Render::Render(){}
 Render::~Render(){}

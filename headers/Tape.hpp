@@ -1,18 +1,19 @@
+#pragma once
 #include "ITape.hpp"
 #include "Config.hpp"
 #include <fstream>
 #include <thread>
 #include <chrono>
 
-class Tape : IType {
+class Tape : public ITape {
     private:
         std::fstream data;
         size_t current_position;
 
         // Задержки
-        int rw_delay;
-        int rewind_delay;
-        int move_delay;
+        size_t rw_delay;
+        size_t rewind_delay;
+        size_t move_delay;
 
     public:
         Tape(std::string file_name, Config conf);

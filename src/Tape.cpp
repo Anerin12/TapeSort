@@ -7,12 +7,12 @@ Tape::Tape(std::string file_name, Config conf) : rw_delay(conf.rw_delay),
                                                 move_delay(conf.move_delay) 
 {
     // Открываем поток ввода (ленту)
-    this->data.open(file_name, std::ios::in | std::ios::out);
+    this->data.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
 
     if (!this->data.is_open())
     {
         this->data.clear();
-        this->data.open(file_name, std::ios::in | std::ios::out | std::ios::trunc);
+        this->data.open(file_name, std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
     }
 
     if (!this->data.is_open())
@@ -36,6 +36,7 @@ std::optional<int32_t> Tape::read(){
     int32_t buffer = 0;
     std::streampos bytePosition = static_cast<std::streamoff>(this->current_position) * ENTRY_SIZE;
 
+    this->data.clear(); 
     this->data.seekg(bytePosition);
 
     if (this->data >> buffer)
@@ -49,6 +50,8 @@ std::optional<int32_t> Tape::read(){
 
 bool Tape::write(int32_t value) {
     std::streampos bytePosition = static_cast<std::streamoff>(this->current_position) * ENTRY_SIZE;
+
+    this->data.clear();
     this->data.seekp(bytePosition);
 
     if (this->data << std::setw(ENTRY_SIZE - 1) << std::setfill(' ') << value << " ")
@@ -63,8 +66,9 @@ bool Tape::write(int32_t value) {
 
 bool Tape::rewind() {
     this->current_position = 0;
-    std::streampos bytePosition = static_cast<std::streamoff>(this->current_position) * sizeof(int32_t);
+    std::streampos bytePosition = static_cast<std::streamoff>(this->current_position) * ENTRY_SIZE;
 
+    this->data.clear();
     this->data.seekg(bytePosition);
     std::this_thread::sleep_for(std::chrono::milliseconds(this->rewind_delay));
 

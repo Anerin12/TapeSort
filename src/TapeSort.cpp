@@ -4,11 +4,26 @@ TapeSort::TapeSort(std::string &input_tape, std::string &output_tape, Config con
     start_tape = std::make_unique<Tape>(input_tape, conf);
     end_tape = std::make_unique<Tape>(output_tape, conf);
     temp_files_count = 0;
+
+    if (!std::filesystem::exists("../tmp/")){
+        std::filesystem::create_directories("../tmp/");
+    }
 }
 
 void TapeSort::split(){
+    if (std::filesystem::exists("../tmp/"))
+    {
+        std::filesystem::remove_all("../tmp/");
+    }
+    std::filesystem::create_directories("../tmp/");
+
     size_t capacity = (static_cast<size_t>(ram_size * 0.9) - sizeof(std::vector<int32_t>)) / sizeof(int32_t);
-    std::cout << "Capacit in split: " << capacity << std::endl;
+
+    if (capacity < 1){
+        std::cerr << "Error : not enough memory." << std::endl;
+        exit(1);
+    }
+
     std::vector<int32_t> buffer;
     buffer.reserve(capacity);
 
@@ -48,10 +63,14 @@ void TapeSort::split(){
 
 void TapeSort::merge(){
     size_t ones_tape = sizeof(Tape) + sizeof(Node) + sizeof(std::unique_ptr<Tape>);
-    std::cout << "Размер одного объекта Tape в RAM: " << sizeof(Tape) << " байт" << std::endl;
     size_t capacity = static_cast<size_t>(ram_size * 0.9) / ones_tape;
-    std::cout << "Capacity: " << capacity << std::endl;
-    std::vector<std::unique_ptr<Tape>> tapes;
+
+    if (capacity < 2) {
+        std::cerr << "Error: not enough memory." << std::endl;
+        exit(1);
+    }
+
+    std::vector<std::unique_ptr<ITape>> tapes;
     tapes.reserve(capacity);
     std::priority_queue<Node, std::vector<Node>, std::greater<Node>> minHeap;
 
@@ -70,7 +89,7 @@ void TapeSort::merge(){
                 size_t range = std::min(capacity, current_temp_files - start);
 
                 std::string out_name = std::format("../tmp/layers_{}_{}.txt", layers, files_in_layers);
-                std::unique_ptr<Tape> pt = std::make_unique<Tape>(out_name, conf);
+                std::unique_ptr<ITape> pt = std::make_unique<Tape>(out_name, conf);
 
                 sub_merge(tapes, minHeap, pt, start, range, layers - 1);
 
@@ -89,12 +108,12 @@ void TapeSort::merge(){
     }
 }
 
-void TapeSort::sub_merge(std::vector<std::unique_ptr<Tape>> &tapes, std::priority_queue<Node, std::vector<Node>, std::greater<Node>> &minHeap, std::unique_ptr<Tape>& output_tape, size_t start_range, size_t range, size_t prev_layer)
+void TapeSort::sub_merge(std::vector<std::unique_ptr<ITape>> &tapes, std::priority_queue<Node, std::vector<Node>, std::greater<Node>> &minHeap, std::unique_ptr<ITape>& output_tape, size_t start_range, size_t range, size_t prev_layer)
 {
     for (size_t file = 0; file < range; file++)
     {
         std::string inp_name = (prev_layer == 1) ? std::format("../tmp/tape_{}.txt", start_range + file) : std::format("../tmp/layers_{}_{}.txt", prev_layer, start_range + file);
-        std::unique_ptr<Tape> t = std::make_unique<Tape>(inp_name, conf);
+        std::unique_ptr<ITape> t = std::make_unique<Tape>(inp_name, conf);
         auto val = t->read();
         if (val){
             minHeap.push({*val, file});

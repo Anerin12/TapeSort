@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -5,9 +6,9 @@
 
 struct Config
 {
-    int rw_delay = 0;
-    int rewind_delay = 0;
-    int move_delay = 0;
+    size_t rw_delay = 0;
+    size_t rewind_delay = 0;
+    size_t move_delay = 0;
     size_t ram_size = 0;
 };
 

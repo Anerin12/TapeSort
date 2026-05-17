@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <algorithm>
 #include <format>
@@ -13,6 +14,11 @@ struct Node
 
     bool operator>(const Node &other) const
     {
+        if (value == other.value)
+        {
+            return tape_idx > other.tape_idx; 
+        }
+
         return value > other.value;
     }
 };
@@ -23,12 +29,12 @@ class TapeSort
         size_t ram_size;
         size_t temp_files_count;
         Config conf;
-        std::unique_ptr<Tape> start_tape;
-        std::unique_ptr<Tape> end_tape;
+        std::unique_ptr<ITape> start_tape;
+        std::unique_ptr<ITape> end_tape;
 
         void split();
         void merge();
-        void sub_merge(std::vector<std::unique_ptr<Tape>> &tapes, std::priority_queue<Node, std::vector<Node>, std::greater<Node>> &minHeap, std::unique_ptr<Tape> &output_tape, size_t start_range, size_t range, size_t prev_layer);
+        void sub_merge(std::vector<std::unique_ptr<ITape>> &tapes, std::priority_queue<Node, std::vector<Node>, std::greater<Node>> &minHeap, std::unique_ptr<ITape> &output_tape, size_t start_range, size_t range, size_t prev_layer);
         void clean_layers(size_t layer, size_t files_in_layers);
 
     public:

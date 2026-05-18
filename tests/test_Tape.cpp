@@ -2,13 +2,15 @@
 #include <filesystem>
 #include "Tape.hpp"
 
+inline auto logger_mock = std::make_shared<Logger>("test_log.txt");
+
 // Метод read()/write()
 TEST_CASE("write and read some number", "[r/w]") {
     std::string file = "./test_tape.txt";
     std::filesystem::remove(file);
 
     {
-        Tape example("./test_tape.txt", {0, 0, 0, 0});
+        Tape example("./test_tape.txt", {0, 0, 0, 0}, logger_mock);
 
         SECTION("Simple number (not critical, positive)"){
             example.write(15);
@@ -52,7 +54,7 @@ TEST_CASE("Correct rewind to start", "[rewind]"){
     std::filesystem::remove(file);
 
     {
-        Tape example = Tape("./test_tape.txt", {0, 0, 0, 0});
+        Tape example = Tape("./test_tape.txt", {0, 0, 0, 0}, logger_mock);
 
         SECTION("Write and move to 3 numbers and do rewind"){
             for (int i = 0; i < 3; i++){
@@ -75,7 +77,7 @@ TEST_CASE("Correct move from tape", "[move]"){
     std::filesystem::remove(file);
 
     {
-        Tape example = Tape("./test_tape.txt", {0, 0, 0, 0});
+        Tape example = Tape("./test_tape.txt", {0, 0, 0, 0}, logger_mock);
 
         SECTION("Check move forward"){
             for (int i = 0; i < 5; i++){

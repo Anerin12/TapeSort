@@ -3,6 +3,7 @@
 #define private public
 #include "generator.hpp"
 
+inline auto logger_mock = std::make_shared<Logger>("test_log.txt");
 
 
 bool checkSort(std::string filename){
@@ -59,10 +60,10 @@ void deleteArtifact(){
 
 // Метод split()
 TEST_CASE("Correct split input file", "[split]"){
-    generate_input(100);
+    generate_input(100, "./input.txt");
     std::string inp = "./input.txt";
     std::string out = "./output.txt";
-    TapeSort sort(inp, out, {0, 0, 0, 72}); // При 72 байтах памяти, 100 чисел должно разделиться ровно на 10 отсортированных лент
+    TapeSort sort(inp, out, {0, 0, 0, 72}, logger_mock); // При 72 байтах памяти, 100 чисел должно разделиться ровно на 10 отсортированных лент
 
     SECTION("Correct split input tape"){
         sort.split();
@@ -77,10 +78,10 @@ TEST_CASE("Correct split input file", "[split]"){
 
 // Метод merge()
 TEST_CASE("Correct work merge loop (capacity > ram_size)", "[merge]"){
-    generate_input(100);
+    generate_input(100, "./input.txt");
     std::string inp = "./input.txt";
     std::string out = "./output.txt";
-    TapeSort sort(inp, out, {0, 0, 0, 2048});
+    TapeSort sort(inp, out, {0, 0, 0, 2048}, logger_mock);
     sort.split();
 
     REQUIRE(sort.temp_files_count == 1);
@@ -93,10 +94,10 @@ TEST_CASE("Correct work merge loop (capacity > ram_size)", "[merge]"){
 
 TEST_CASE("Correct work merge loop (capacity < ram_size)", "[merge]")
 {
-    generate_input(10000);
+    generate_input(10000, "./input.txt");
     std::string inp = "./input.txt";
     std::string out = "./output.txt";
-    TapeSort sort(inp, out, {0, 0, 0, 2048});
+    TapeSort sort(inp, out, {0, 0, 0, 2048}, logger_mock);
     sort.split();
 
     sort.merge();

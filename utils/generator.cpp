@@ -1,6 +1,6 @@
 #include "generator.hpp"
 
-void generate_input(int num)
+void generate_input(int num, std::string file_name)
 {
     {
         std::ofstream clear_file("./input.txt", std::ios::trunc);
@@ -8,7 +8,7 @@ void generate_input(int num)
             return;
     }
 
-    Tape input_tape("./input.txt", {0, 0, 0, 0});
+    Tape input_tape(file_name, {0, 0, 0, 0});
 
     std::random_device rd;
     std::mt19937 gen(rd());

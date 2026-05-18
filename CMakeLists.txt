@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(APP_SOURCES
     src/main.cpp
-    src/render.cpp
 )
 
 set(CORE_SOURCES
@@ -15,6 +14,8 @@ set(CORE_SOURCES
     src/TapeSort.cpp 
     utils/Config.cpp 
     utils/generator.cpp
+    utils/Logger.cpp
+
 )
 
 add_executable(TapeSortApp ${APP_SOURCES} ${CORE_SOURCES})

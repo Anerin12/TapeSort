@@ -36,10 +36,29 @@ const std::string& Event::getMessage() const
 }
 
 Logger::Logger(const std::string& file_name){
+    std::filesystem::path p(file_name);
+
+    if (p.has_parent_path())
+    {
+        std::error_code ec;
+        if (!std::filesystem::exists(p.parent_path()))
+        {
+            std::filesystem::create_directories(p.parent_path(), ec);
+            if (ec)
+            {
+                std::cerr << std::format("Error: could not create directory {}: {}",
+                                         p.parent_path().string(), ec.message())
+                          << std::endl;
+                return; 
+            }
+        }
+    }
+
     device.open(file_name, std::ios::out);
 
-    if (!device.is_open()){
-        std::cerr << std::format("Error: file for logging ({}) can't opened.", file_name) << std::endl;
+    if (!device.is_open())
+    {
+        std::cerr << std::format("Error: file for logging ({}) can't be opened.", file_name) << std::endl;
     }
 }
 

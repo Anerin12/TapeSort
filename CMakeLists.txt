@@ -15,7 +15,6 @@ set(CORE_SOURCES
     utils/Config.cpp 
     utils/generator.cpp
     utils/Logger.cpp
-
 )
 
 add_executable(TapeSortApp ${APP_SOURCES} ${CORE_SOURCES})

@@ -1,6 +1,8 @@
+#pragma once
 #include <string>
 #include <format>
 #include <fstream>
+#include <filesystem>
 #include <iostream>
 
 enum class Stage {

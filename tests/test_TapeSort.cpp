@@ -63,7 +63,14 @@ TEST_CASE("Correct split input file", "[split]"){
     generate_input(100, "./input.txt");
     std::string inp = "./input.txt";
     std::string out = "./output.txt";
-    TapeSort sort(inp, out, {0, 0, 0, 72}, logger_mock); // При 72 байтах памяти, 100 чисел должно разделиться ровно на 10 отсортированных лент
+    Config conf = {0, 0, 0, 72};
+
+    TapeFactory mock_factory = [conf](const std::string &name, bool logging)
+    {
+        return std::make_unique<Tape>(name, conf);
+    };
+
+    TapeSort sort(inp, out, conf, logger_mock, mock_factory); // При 72 байтах памяти, 100 чисел должно разделиться ровно на 10 отсортированных лент
 
     SECTION("Correct split input tape"){
         sort.split();
@@ -81,7 +88,14 @@ TEST_CASE("Correct work merge loop (capacity > ram_size)", "[merge]"){
     generate_input(100, "./input.txt");
     std::string inp = "./input.txt";
     std::string out = "./output.txt";
-    TapeSort sort(inp, out, {0, 0, 0, 2048}, logger_mock);
+    Config conf = {0, 0, 0, 2048};
+
+    TapeFactory mock_factory = [conf](const std::string &name, bool logging)
+    {
+        return std::make_unique<Tape>(name, conf);
+    };
+
+    TapeSort sort(inp, out, conf, logger_mock, mock_factory);
     sort.split();
 
     REQUIRE(sort.temp_files_count == 1);
@@ -97,7 +111,14 @@ TEST_CASE("Correct work merge loop (capacity < ram_size)", "[merge]")
     generate_input(10000, "./input.txt");
     std::string inp = "./input.txt";
     std::string out = "./output.txt";
-    TapeSort sort(inp, out, {0, 0, 0, 2048}, logger_mock);
+    Config conf = {0, 0, 0, 2048};
+
+    TapeFactory mock_factory = [conf](const std::string &name, bool logging)
+    {
+        return std::make_unique<Tape>(name, conf);
+    };
+
+    TapeSort sort(inp, out, conf, logger_mock, mock_factory);
     sort.split();
 
     sort.merge();

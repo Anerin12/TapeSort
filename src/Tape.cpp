@@ -46,12 +46,14 @@ std::optional<int32_t> Tape::read(){
 
     if (this->data >> buffer)
     {
+        if (logger)
+        {
+            logger->write(Event(Stage::read, std::format("Read from tape: Delay [{}]", rw_delay)));
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(rw_delay));
         return buffer;
     }
-    if (logger){
-        logger->write(Event(Stage::read, std::format("Read from tape: Delay [{}]", rw_delay)));
-    }
+    
 
     return std::nullopt;
 }
@@ -64,14 +66,15 @@ bool Tape::write(int32_t value) {
 
     if (this->data << std::setw(ENTRY_SIZE - 1) << std::setfill(' ') << value << " ")
     {
+        if (logger)
+        {
+            logger->write(Event(Stage::write, std::format("Write from tape: Delay [{}]", rw_delay)));
+        }
         this->data.flush();
         std::this_thread::sleep_for(std::chrono::milliseconds(rw_delay));
         return true;
     }
-    if (logger)
-    {
-        logger->write(Event(Stage::write, std::format("Write from tape: Delay [{}]", rw_delay)));
-    }
+    
 
     return false;
     }

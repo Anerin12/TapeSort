@@ -12,55 +12,46 @@ bool checkInput(std::string file_name){
 
 int main(int argc, char *argv[])
 {
+    generate_input(1000, "../input.txt");
+    std::string inp_tape;
+    std::string out_tape;
+
     std::shared_ptr<Logger> logger = nullptr;
 
     if (argc < 2)
     {
-        std::cout << "Path for logging not found. App continues without logging.\n";
+        std::cerr << "Path for input/output not found.\n";
+        exit(1);
     }
     else
     {
-        logger = std::make_shared<Logger>(argv[1]);
-    }
-
-    std::string inp_tape;
-    std::string out_tape;
-
-    std::cout << "Welcome to TapeSort!\nYou can use a ready-made feed or generate one here:\n1. Import tape\n2. Generate tape" << std::endl;
-    int opt;
-    std::cin >> opt;
-
-    switch (opt)
-    {
-    case 1:
-        std::cout << "Input path for start tape: ";
-        std::cin >> inp_tape;
-
-        while (!checkInput(inp_tape))
-        {
-            std::cout << "Input path for start tape: ";
-            std::cin >> inp_tape;
+        if (checkInput(argv[1])){
+            inp_tape = argv[1];
         }
-        break;
+        else {
+            exit(1);
+        }
 
-    case 2:
-        std::cout << "Input path for start tape: ";
-        std::cin >> inp_tape;
-        std::cout << "Input count munbers in tape: ";
-        size_t size;
-        std::cin >> size;
-        generate_input(size, inp_tape);
-        break;
-
-    default:
-        break;
+        if (argc > 2){
+            if (checkInput(argv[2])){}
+            out_tape = argv[2];
+        }
+        else out_tape = "../output.txt";
     }
 
-    std::cout << "Input path for result tape: ";
-    std::cin >> out_tape;
+    logger = std::make_shared<Logger>("../logs/log.txt");
 
     Config conf = parseConfig("../config/config.txt");
-    TapeSort sort = TapeSort(inp_tape, out_tape, conf, logger);
+
+    TapeFactory tape_factory = [conf, logger](const std::string &name,  bool logging) -> std::unique_ptr<ITape>
+    {
+        if (logging){
+            return std::make_unique<Tape>(name, conf, logger);
+        }
+        return std::make_unique<Tape>(name, conf, nullptr);
+    };
+
+    TapeSort sort = TapeSort(inp_tape, out_tape, conf, logger, tape_factory);
 
     sort.start();
 

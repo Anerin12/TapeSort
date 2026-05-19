@@ -1,10 +1,15 @@
 #include "TapeSort.hpp"
 
-TapeSort::TapeSort(std::string &input_tape, std::string &output_tape, Config conf, std::shared_ptr<Logger> logger): ram_size(conf.ram_size), 
-                                                                                                                    conf(conf),
-                                                                                                                    logger(logger){
-    start_tape = std::make_unique<Tape>(input_tape, conf, logger);
-    end_tape = std::make_unique<Tape>(output_tape, conf, logger);
+TapeSort::TapeSort(std::string &input_tape, 
+    std::string &output_tape, 
+    Config conf, 
+    std::shared_ptr<Logger> logger, TapeFactory tape_factory): ram_size(conf.ram_size), 
+                                       conf(conf),
+                                       logger(logger),
+                                       tape_factory(tape_factory)
+{
+    start_tape = tape_factory(input_tape, true);
+    end_tape = tape_factory(output_tape, true);
     temp_files_count = 0;
     logger->write(Event(Stage::sort, "Initial sort"));
 
@@ -55,11 +60,11 @@ void TapeSort::split(){
 
         std::sort(buffer.begin(), buffer.end());
 
-        Tape inter_tape(std::format("../tmp/tape_{}.txt", file_num++), conf, logger);
+        auto inter_tape = tape_factory(std::format("../tmp/tape_{}.txt", file_num++), true);
 
         std::for_each(buffer.begin(), buffer.end(), [&](int32_t x){
-            inter_tape.write(x);
-            inter_tape.move(true);
+            inter_tape->write(x);
+            inter_tape->move(true);
         });
     }
     
@@ -99,7 +104,7 @@ void TapeSort::merge(){
                 size_t range = std::min(capacity, current_temp_files - start);
 
                 std::string out_name = std::format("../tmp/layers_{}_{}.txt", layers, files_in_layers);
-                std::unique_ptr<ITape> pt = std::make_unique<Tape>(out_name, conf, logger);
+                std::unique_ptr<ITape> pt = tape_factory(out_name, true);
 
                 sub_merge(tapes, minHeap, pt, start, range, layers - 1);
 
@@ -127,7 +132,7 @@ void TapeSort::sub_merge(std::vector<std::unique_ptr<ITape>> &tapes, std::priori
     for (size_t file = 0; file < range; file++)
     {
         std::string inp_name = (prev_layer == 1) ? std::format("../tmp/tape_{}.txt", start_range + file) : std::format("../tmp/layers_{}_{}.txt", prev_layer, start_range + file);
-        std::unique_ptr<ITape> t = std::make_unique<Tape>(inp_name, conf, logger);
+        std::unique_ptr<ITape> t = tape_factory(inp_name, true);
         auto val = t->read();
         if (val){
             minHeap.push({*val, file});
